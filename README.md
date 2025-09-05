@@ -192,11 +192,11 @@ http://k8s.test.com/deploy1?url=http://po1-svc
  ← 最後前端 Pod 把「自己的輸出 + 後端 Pod 的輸出」一起回傳給瀏覽器
  ```
 > Pod 裡的程式碼自己發 HTTP request 去連 Kubernetes Service（透過內網 DNS 解析），而不是使用者直接打 Pod。
-> 
+
 #### 三、 練習的原因
  我認為這正是微服務架構的核心概念：前端 Pod（例如 Web server, API Gateway）通常不直接存取資料，而是透過呼叫後端 Service。
  這樣的好處是：
  (1) 不同 Service 可以獨立部署、獨立維護。
  (2) Service 名稱（如 `po1-svc`）就是 cluster 內的 DNS 名稱，不用擔心 Pod IP 變動。
  (3) Ingress 只需要對外公開前端 Service，內部 Service 可以繼續保護在 cluster 內。
----
+
