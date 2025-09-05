@@ -1,11 +1,12 @@
+# Service 不寫 Pod 名單，它靠 selector 去 cluster 裡找「label 符合的 Pod」
 apiVersion: v1
 kind: Service
 metadata:
   name: po1-svc
 spec:
-  selector:
+  selector: # 用 label 過濾出 Pod
     app: po1
   ports:
     - protocol: TCP
-      port: 80
-      targetPort: 80
+      port: 80 # Service 口
+      targetPort: 80 # Pod 內部容器口（不寫時通常同 port）

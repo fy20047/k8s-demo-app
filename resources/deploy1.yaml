@@ -5,15 +5,15 @@ metadata:
   labels:
     app: deploy1
 spec:
-  replicas: 3
+  replicas: 3 # Deployment 會建立/維護多個副本（replicas），，並確保 label 一致
   selector:
     matchLabels:
-      app: deploy1
+      app: deploy1 # 告訴 Deployment 要管理哪些 Pod
   template: # 一個 pod 的設定
     metadata:
       name: deploy1
       labels:
-        app: deploy1
+        app: deploy1 # Service deploy1-svc 靠這個撈 Pod
     spec:
       containers:
         - name: k8s-demo-app

@@ -6,13 +6,13 @@ metadata:
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   rules:
-    - host: foo.bar.com
+    - host: k8s.test.com # 先比對 Host
       http:
         paths:
-          - path: /po1
+          - path: /po1 # 再比對 Path
             pathType: Prefix
             backend:
-              service:
+              service: # 告訴 Ingress 下一跳要找哪個 Service
                 name: po1-svc
                 port:
                   number: 80
@@ -21,5 +21,12 @@ spec:
             backend:
               service:
                 name: deploy1-svc
+                port:
+                  number: 80
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: popo-svc
                 port:
                   number: 80
