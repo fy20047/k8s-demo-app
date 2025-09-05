@@ -181,13 +181,15 @@ http://k8s.test.com/deploy1?url=http://po1-svc
  所以 `http://k8s.test.com/deploy1?url=http://po1-svc` 的流程就是：
   ```scss
  Request
- → Ingress
+ → Ingress (根據 Host/Path 判斷，導到 deploy1-svc)
    → Service (deploy1-svc)
-     → 前端 Pod (deploy1)
-       → Service (po1-svc)
-         → 後端 Pod (po1)
+     → 前端 Pod (deploy1) 接收請求，執行 index.php
+       → 發現帶有 ?url=http://po1-svc
+       → 在 Pod 內再發一個內部 HTTP request
+         → Service (po1-svc)
+           → 後端 Pod (po1) 執行並回應
        ← 回傳給前端 Pod (deploy1)
- ← 最後瀏覽器顯示
+ ← 最後前端 Pod 把「自己的輸出 + 後端 Pod 的輸出」一起回傳給瀏覽器
  ```
 --- 
 3. 練習的原因
