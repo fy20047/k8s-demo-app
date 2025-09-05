@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: k8s-demo-app
-          image: jasonmel/k8s-demo-app:latest
+          image: fy20047/k8s-demo-app:latest
           env:
             - name: MESSAGE
               value: "Hello from deploy1."
