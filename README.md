@@ -104,7 +104,7 @@ kubectl apply -f deploy1-svc.yaml -n ns1
 kubectl get services -n ns1
 kubectl port-forward service/deploy1-svc 8080:80 -n ns1
 ```
-到這邊 Pod 以及 Deployment 和相對應的 Service 都部署建立完成後，Cluster 內網的相互溝通大致上就沒問題了！
+> 到這邊 Pod 以及 Deployment 和相對應的 Service 都部署建立完成後，Cluster 內網的相互溝通大致上就沒問題了！
 
 #### 注意：更新與 Rollout
 - 若本機先前有使用 `docker run -p 8080:80 ...` 起過容器，會佔用 8080 port。  
@@ -120,7 +120,7 @@ kubectl port-forward deployment/deploy1 8888:80 -n ns1 # 改用不同的本機 p
 ```
 
 ### ４. 打通 k8s 內網與外部的連線
-在這邊要建立 Ingress 路由規則，但在這之前要先確定 Cluster 內部有跑著 Ingress Controller（本練習使用 NGINX Ingress）。
+> 在這邊要建立 Ingress 路由規則，但在這之前要先確定 Cluster 內部有跑著 Ingress Controller（本練習使用 NGINX Ingress）。
 
 #### 4.1 啟用 Ingress Controller（Minikube）
 ```powershell
@@ -130,7 +130,7 @@ kubectl get pods -n ingress-nginx
 ```
 
 #### 4.2 本機 domain 綁定（/etc/hosts）
-為了用自訂網域測試（例如 k8s.test.com），把它指到本機 127.0.0.1。
+> 為了用自訂網域測試（例如 k8s.test.com），把它指到本機 127.0.0.1。
 ```powershell
 Add-Content -Path "C:\Windows\System32\drivers\etc\hosts" -Value "127.0.0.1 k8s.test.com"
 # 驗證
