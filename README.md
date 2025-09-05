@@ -34,10 +34,10 @@ kubectl get services -A
 
 ### 2. 準備 Docker image
 
-#### 2.1 首先在專案根目錄建立：
-.\src\index.php
-.\Dockerfile
-.\.dockerignore
+#### 2.1 首先在專案根目錄建立檔案
+ (1).\src\index.php
+ (2).\Dockerfile
+ (3).\.dockerignore
 
 ```powershell
 docker build -t k8s-demo-app:latest .
