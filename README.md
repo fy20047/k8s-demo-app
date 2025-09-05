@@ -154,7 +154,7 @@ http://k8s.test.com/            # 進 popo（根路徑）
 http://k8s.test.com/po1         # 進 po1
 http://k8s.test.com/deploy1     # 進 deploy1
 ```
-> 也可以測 Service 互叫（在瀏覽器加上 ?url=http://po1-svc，由前端 Pod 再去呼叫 cluster 內的 Service）：
+> 也可以測 Service 互叫（在瀏覽器加上如 "?url=http://po1-svc"，由前端 Pod 再去呼叫 cluster 內的 Service）：
 ```text
 http://k8s.test.com/po1?url=http://deploy1-svc
 http://k8s.test.com/deploy1?url=http://po1-svc
