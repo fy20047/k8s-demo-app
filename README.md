@@ -160,23 +160,23 @@ http://k8s.test.com/po1?url=http://deploy1-svc
 http://k8s.test.com/deploy1?url=http://po1-svc
 ```
 > 在這邊第一段會顯示「目前處理請求的 Pod」，下面則會印出「被呼叫的 svc 回應」。
+---
+#### 補充說明：Service 呼叫的兩種情境
+#### 一、 正常情境：瀏覽器直接打 Pod/Service
+- 使用者（外部 client）透過 ingress → service → pod 直接存取應用程式。
+ - Ingress 根據 Host/Path 把流量導到對應的 Service，Service 再把 request 送進 Pod。
+ - 這時候流量的來源是 `外部使用者 → Ingress → Service → Pod`。
 
-#### 補充：
-1. 正常情境：瀏覽器直接打 Pod/Service
-- 平常在瀏覽器輸入網址（透過 ingress → service → pod），是使用者（外部 client）直接打 cluster 內的 Service/Pod。
- - Ingress 會根據 host/path 把 request 導到對應的 Service，Service 再把流量送進 Pod。
- - 這時候流量的來源是「外部使用者 → Ingress → Service → Pod」。
---- 
-2. 另一種情境：Pod 自己當「前端」，再去呼叫 cluster 內的 Service
- 有時候使用者不是從外部直接打 Service，而是某個 Pod（通常是前端 App Pod）需要在程式裡呼叫 cluster 內的其他 Service。
- 例如在 `index.php` 裡有一行
+#### 二、 Pod 自己當前端，再去呼叫 cluster 內的 Service
+ 有時候使用者不是直接打某個 Service，而是 Pod 裡的程式碼需要再去呼叫其他 Service。
+ 例如在 `index.php` 裡有一行：
  ```php
  echo file_get_contents("http://po1-svc");
  ```
- 這代表：
- - 這個 PHP Pod 自己當 client，在 cluster 內網去打 po1-svc 這個 Service。
- - Kubernetes DNS 會解析 po1-svc 成為 Service 的 ClusterIP，流量再由 Service 導到對應的 Pod。
- - 最後結果回傳到 PHP Pod，然後再顯示在瀏覽器。
+ 代表：
+ - 這個 PHP Pod 自己當 client，在 cluster 內網去連 `po1-svc` 。
+ - Kubernetes DNS 會解析 `po1-svc` 成為 Service 的 ClusterIP，流量再由 Service 導到對應的 Pod。
+ - 最後結果回傳到 PHP Pod，然後顯示在網頁上。
  
  所以 `http://k8s.test.com/deploy1?url=http://po1-svc` 的流程就是：
   ```scss
@@ -191,12 +191,12 @@ http://k8s.test.com/deploy1?url=http://po1-svc
        ← 回傳給前端 Pod (deploy1)
  ← 最後前端 Pod 把「自己的輸出 + 後端 Pod 的輸出」一起回傳給瀏覽器
  ```
---- 
-3. 練習的原因
- 因為在微服務架構裡，前端 Pod（例如 Web server, API Gateway）不會直接存取資料，而是去呼叫 後端 Service。
+> Pod 裡的程式碼自己發 HTTP request 去連 Kubernetes Service（透過內網 DNS 解析），而不是使用者直接打 Pod。
+> 
+#### 三、 練習的原因
+ 我認為這正是微服務架構的核心概念：前端 Pod（例如 Web server, API Gateway）通常不直接存取資料，而是透過呼叫後端 Service。
  這樣的好處是：
- (1) 不同 Service 可以獨立部署、獨立維護
- (2) Service 名稱（po1-svc）就是 cluster 內的 DNS 名稱，換 Pod 也不用擔心 IP 改變
- (3) Ingress 不需要秀出所有 Service，只要對外展示於前端就好，內部 Service 可以繼續保護在 cluster 內
+ (1) 不同 Service 可以獨立部署、獨立維護。
+ (2) Service 名稱（如 `po1-svc`）就是 cluster 內的 DNS 名稱，不用擔心 Pod IP 變動。
+ (3) Ingress 只需要對外公開前端 Service，內部 Service 可以繼續保護在 cluster 內。
 ---
-Pod 裡的程式碼自己發 HTTP request 去連 Kubernetes Service（透過內網 DNS 解析），而不是使用者直接打 Pod。
