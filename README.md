@@ -58,7 +58,7 @@ docker build -t <Docker Desktop ID>/k8s-demo-app:latest .
 docker push <Docker Desktop ID>/k8s-demo-app:latest
 ```
 
-### 3. 打造 k8s 環境
+### 3. 打造 k8s 內網環境
 
 #### 3.1 首先建立 Namespace
 ```powershell
@@ -83,20 +83,28 @@ kubectl get pods -n ns1
 kubectl port-forward pod/po1 8080:80 -n ns1
 ```
 
-#### 3.4 建立 Service
+#### 3.4 建立 Pod Service
 ```powershell
 kubectl apply -f po1-svc.yaml -n ns1
 kubectl get services -n ns1
 kubectl port-forward service/po1-svc 8080:80 -n ns1
 ```
 
-#### 3.5 建立 Deployment
+#### 3.5 建立 Deployment 
 ```powershell
 kubectl apply -f deploy1.yaml -n ns1
 kubectl get deployments -n ns1
 kubectl get pods -n ns1   # replicas: 3 → 會有三個 Pod
 kubectl port-forward deployment/deploy1 8080:80 -n ns1
 ```
+
+#### 3.6 建立 Deployment Service
+```powershell
+kubectl apply -f deploy1-svc.yaml -n ns1
+kubectl get services -n ns1
+kubectl port-forward service/deploy1-svc 8080:80 -n ns1
+```
+到這邊 Pod 以及 Deployment 和相對應的 Service 都部署建立完成後，Cluster 內網的相互溝通大致上就沒問題了！
 
 #### 注意：更新與 Rollout
 - 若本機先前有使用 `docker run -p 8080:80 ...` 起過容器，會佔用 8080 port。  
@@ -110,3 +118,13 @@ kubectl apply -f .\resources\deploy1.yaml -n ns1 # 重新套用 Deployment
 kubectl rollout status deployment/deploy1 -n ns1 # 查看更新狀態
 kubectl port-forward deployment/deploy1 8888:80 -n ns1 # 改用不同的本機 port 測試
 ```
+
+### ４. 打通 k8s 內網與外部的連線
+在這邊要建立 Ingress 路由規則，但在這之前要先確定 Cluster 內部有跑著 Ingress Controller 來做為執行網路封包路由的實際角色。
+在 minikube 當中，要部署一個 Ingress Controller，可以執行下述指令： 
+```powershell
+minikube addons enable ingress 
+```
+執行後 Minikube 會安裝了一個 Ingress Controller（在這裡是 nginx-ingress），有了 Ingress，接下來就可以在 cluster 裡用 HTTP 路由規則，把流量導向不同的 Service。
+
+
