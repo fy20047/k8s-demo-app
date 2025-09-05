@@ -106,6 +106,8 @@ kubectl port-forward service/deploy1-svc 8080:80 -n ns1
 ```
 > 到這邊 Pod 以及 Deployment 和相對應的 Service 都部署建立完成後，Cluster 內網的相互溝通大致上就沒問題了！
 
+---
+
 #### 注意：更新與 Rollout
 - 若本機先前有使用 `docker run -p 8080:80 ...` 起過容器，會佔用 8080 port。  
 - 這時候即使 K8s Pod 已經成功啟動並 port-forward 到 8080，瀏覽器仍會連到本機 Docker 容器，而不是 K8s Pod。  
@@ -118,6 +120,8 @@ kubectl apply -f deploy1.yaml -n ns1 # 重新套用 Deployment
 kubectl rollout status deployment/deploy1 -n ns1 # 查看更新狀態
 kubectl port-forward deployment/deploy1 8888:80 -n ns1 # 改用不同的本機 port 測試
 ```
+
+---
 
 ### ４. 打通 k8s 內網與外部的連線
 > 在這邊要建立 Ingress 路由規則，但在這之前要先確定 Cluster 內部有跑著 Ingress Controller（本練習使用 NGINX Ingress）。
@@ -196,7 +200,8 @@ http://k8s.test.com/deploy1?url=http://po1-svc
 #### 三、 練習的原因
  我認為這正是微服務架構的核心概念：前端 Pod（例如 Web server, API Gateway）通常不直接存取資料，而是透過呼叫後端 Service。
  這樣的好處是：
- (1) 不同 Service 可以獨立部署、獨立維護。
- (2) Service 名稱（如 `po1-svc`）就是 cluster 內的 DNS 名稱，不用擔心 Pod IP 變動。
- (3) Ingress 只需要對外公開前端 Service，內部 Service 可以繼續保護在 cluster 內。
+  - 不同 Service 可以獨立部署、獨立維護。
+  - Service 名稱（如 `po1-svc`）就是 cluster 內的 DNS 名稱，不用擔心 Pod IP 變動。
+  - Ingress 只需要對外公開前端 Service，內部 Service 可以繼續保護在 cluster 內。
 
+---
