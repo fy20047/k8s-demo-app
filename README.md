@@ -114,17 +114,50 @@ kubectl port-forward service/deploy1-svc 8080:80 -n ns1
   2. 或改用其他本機 port，例如 `kubectl port-forward deployment/deploy1 8888:80 -n ns1`
 ```powershell
 docker stop k8s-demo # 先停掉本機 Docker 容器
-kubectl apply -f .\resources\deploy1.yaml -n ns1 # 重新套用 Deployment
+kubectl apply -f deploy1.yaml -n ns1 # 重新套用 Deployment
 kubectl rollout status deployment/deploy1 -n ns1 # 查看更新狀態
 kubectl port-forward deployment/deploy1 8888:80 -n ns1 # 改用不同的本機 port 測試
 ```
 
 ### ４. 打通 k8s 內網與外部的連線
-在這邊要建立 Ingress 路由規則，但在這之前要先確定 Cluster 內部有跑著 Ingress Controller 來做為執行網路封包路由的實際角色。
-在 minikube 當中，要部署一個 Ingress Controller，可以執行下述指令： 
-```powershell
-minikube addons enable ingress 
-```
-執行後 Minikube 會安裝了一個 Ingress Controller（在這裡是 nginx-ingress），有了 Ingress，接下來就可以在 cluster 裡用 HTTP 路由規則，把流量導向不同的 Service。
+在這邊要建立 Ingress 路由規則，但在這之前要先確定 Cluster 內部有跑著 Ingress Controller（本練習使用 NGINX Ingress）。
 
+#### 4.1 啟用 Ingress Controller（Minikube）
+```powershell
+minikube addons enable ingress
+kubectl get pods -n ingress-nginx
+# 確認 ingress-nginx-controller 為 Running
+```
+
+#### 4.2 本機 domain 綁定（/etc/hosts）
+為了用自訂網域測試（例如 k8s.test.com），把它指到本機 127.0.0.1。
+```powershell
+Add-Content -Path "C:\Windows\System32\drivers\etc\hosts" -Value "127.0.0.1 k8s.test.com"
+# 驗證
+ping k8s.test.com
+```
+
+#### 4.3 開啟 tunnel（讓本機能連進 Minikube）
+```powershell
+minikube tunnel # 需保持開啟，否則無法由本機存取 Ingress
+```
+
+#### 4.4 建立 Ingress 路由（以 Host + Path 導流到不同 Service）
+```powershell
+kubectl apply -f ing1.yaml -n ns1
+kubectl get ingress -n ns1
+```
+
+#### 4.5 測試（瀏覽器或 curl）
+```text
+http://k8s.test.com/            # 進 popo（根路徑）
+http://k8s.test.com/po1         # 進 po1
+http://k8s.test.com/deploy1     # 進 deploy1
+```
+也可以測 Service 互叫（在瀏覽器加上 ?url=http://po1-svc，由前端 Pod 再去呼叫 cluster 內的 Service）：
+```text
+http://k8s.test.com/po1?url=http://deploy1-svc
+http://k8s.test.com/deploy1?url=http://po1-svc
+```
+在這邊第一段會顯示「目前處理請求的 Pod」，下面則會印出「被呼叫的 svc 回應」
 
