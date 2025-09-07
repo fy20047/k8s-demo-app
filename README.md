@@ -33,7 +33,7 @@ kubectl get services -A
 ```
 
 ### 2. 準備 Docker image
-
+> 建立 PHP 應用、Dockerfile 與 .dockerignore，建置 image 並推送到 Docker Hub。
 #### 2.1 首先在專案根目錄建立檔案
 ```powershell
  (1).\src\index.php
@@ -58,7 +58,9 @@ docker build -t <Docker Desktop ID>/k8s-demo-app:latest .
 docker push <Docker Desktop ID>/k8s-demo-app:latest
 ```
 
-### 3. 打造 k8s 內網環境
+### 3. 打造 k8s 內網環境 (ns1)
+
+> 在 ns1 建立 ConfigMap、Secret、Pod、Service、Deployment 與 Ingress。
 
 #### 3.1 首先建立 Namespace
 ```powershell
@@ -204,4 +206,38 @@ http://k8s.test.com/deploy1?url=http://po1-svc
   - Service 名稱（如 `po1-svc`）就是 cluster 內的 DNS 名稱，不用擔心 Pod IP 變動。
   - Ingress 只需要對外公開前端 Service，內部 Service 可以繼續保護在 cluster 內。
 
+---
+
+### 5. 在 ns2 建立相同資源並操作
+> 在第二個 namespace `ns2`，重複建立 ConfigMap、Secret、Pod、Service、Deployment 與 Ingress：
+```powershell
+kubectl apply -f cm2.yaml -n ns2
+kubectl apply -f secret2.yaml -n ns2
+kubectl apply -f po2.yaml -n ns2
+kubectl apply -f po2-svc.yaml -n ns2
+kubectl apply -f deploy2.yaml -n ns2
+kubectl apply -f deploy2-svc.yaml -n ns2
+kubectl apply -f ing2.yaml -n ns2
+```
+
+#### 5.1 跨 namespace 測試
+- 失敗案例（跨 namespace，無法解析）：　` http://k8s.test.com/po1?url=http://po2-svc `
+ > 因為 `po2-svc` 在 ns2，而 `po1` Pod 在 ns1，K8s DNS 預設會嘗試解析成 `po2-svc.ns1.svc.cluster.local`，進而失敗。
+- 成功案例（指定 namespace）：　` http://k8s.test.com/po1?url=http://po2-svc.svc `
+ > 加上 namespace `ns2`，K8s DNS 就能正確解析成 `po2-svc.ns2.svc.cluster.local`。
+- 完整 FQDN（K8s 內部 DNS 規則）：　` http://k8s.test.com/po1?url=http://po2-svc.svc.cluster.local `
+ > 這是最完整的寫法，明確指出 service、namespace 與 cluster domain。
+
+> 所以!! 經過上面的練習測試，可以整理 K8s DNS 規則如下：
+- 同 namespace：` http://<service-name> `
+- 跨 namespace：` http://<service-name>.<namespace> `
+- 完整格式：` http://<service-name>.<namespace>.svc.cluster.local `
+
+---
+#### 觀念釐清：Ingress Controller 與 minikube tunnel
+- Ingress Controller (cluster-wide)：cluster 的為一入口，負責整合整個 cluster 所有 namespace 的 ingress 規則，這邊的練習流程是使用 Nginx Ingress Controller。
+- Ingress (namespace scoped)：只能指向同 namespace 的 Service；因此每個 namespace 需要自己的 Ingress。
+- Service：負責將流量導向正確的 Pod。
+- minikube tunnel：與 Ingress Controller 不同，而是幫 type=LoadBalancer 的 Service 分配一個本機可用的外部 IP，模擬雲端 LoadBalancer。
+- 也就是說 Namespace 雖然提供資源隔離的效果，但 Ingress Controller 是全域的，會把所有 Ingress 的 host/path 規則整合進單一入口。
 ---
