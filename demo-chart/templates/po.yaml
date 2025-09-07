@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: po{{ .Values.nsId }}
+  labels: # 提供給 Service 使用 selector 綁定
+    app: po{{ .Values.nsId }} # 之後 Service 會用這個 label 來找到 Pod
+spec:
+  containers: # Pod 內的容器清單
+    - name: k8s-demo-app # 容器名稱
+      image: fy20047/k8s-demo-app:latest # 指定要用的 Docker image
+      env: # 填入設定好的三個環境變數
+        - name: MESSAGE
+          value: "Hello from po{{ .Values.nsId }}." # 直接寫死的值
+        - name: USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: cm{{ .Values.nsId }}
+              key: USERNAME # 從 ConfigMap (cm1) 裡讀 USERNAME 欄位
+        - name: PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: secret{{ .Values.nsId }}
+              key: PASSWORD # 從 Secret (secret1) 裡讀 PASSWORD 欄位
+      ports:
+        - containerPort: 80 # 宣告這個容器會對外開啟 80 port（Apache 預設 Web 伺服器 port）

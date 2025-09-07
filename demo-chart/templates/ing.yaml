@@ -1,0 +1,32 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ing{{ .Values.nsId }}
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: k8s.test.com # 先比對 Host
+      http:
+        paths:
+          - path: /po{{ .Values.nsId }} # 再比對 Path
+            pathType: Prefix
+            backend:
+              service: # 告訴 Ingress 下一跳要找哪個 Service
+                name: po{{ .Values.nsId }}-svc
+                port:
+                  number: 80
+          - path: /deploy{{ .Values.nsId }}
+            pathType: Prefix
+            backend:
+              service:
+                name: deploy{{ .Values.nsId }}-svc
+                port:
+                  number: 80
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: popo-svc
+                port:
+                  number: 80

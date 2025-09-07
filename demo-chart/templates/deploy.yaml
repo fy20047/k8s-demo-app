@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deploy{{ .Values.nsId }}
+  labels:
+    app: deploy{{ .Values.nsId }}
+spec:
+  replicas: {{ .Values.replicaCount }} # Deployment 會建立/維護多個副本（replicas），，並確保 label 一致
+  selector:
+    matchLabels:
+      app: deploy{{ .Values.nsId }} # 告訴 Deployment 要管理哪些 Pod
+  template: # 一個 pod 的設定
+    metadata:
+      name: deploy{{ .Values.nsId }}
+      labels:
+        app: deploy{{ .Values.nsId }} # Service deploy1-svc 靠這個撈 Pod
+    spec:
+      containers:
+        - name: k8s-demo-app
+          image: fy20047/k8s-demo-app:latest
+          env:
+            - name: MESSAGE
+              value: "Hello from deploy{{ .Values.nsId }}."
+            - name: USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: cm{{ .Values.nsId }}
+                  key: USERNAME
+            - name: PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secret{{ .Values.nsId }}
+                  key: PASSWORD
+          ports:
+            - containerPort: 80
